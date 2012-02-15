@@ -20,8 +20,12 @@ FILE_LICENCE ( GPL2_OR_LATER );
 
 #define __init
 #define __exit
+#define __devinit
+#define __devexit
 #define __initdata
 #define __exitdata
 #define printk printf
+
+#define ARRAY_SIZE(a)  (sizeof(a) / sizeof((a)[0]))
 
 #endif /* _IPXE_LINUX_COMPAT_H */
