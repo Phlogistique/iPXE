@@ -140,6 +140,8 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define ERRFILE_ath9k		     ( ERRFILE_DRIVER | 0x005f0000 )
 #define ERRFILE_ath		     ( ERRFILE_DRIVER | 0x00600000 )
 #define ERRFILE_vmxnet3		     ( ERRFILE_DRIVER | 0x00610000 )
+#define ERRFILE_gcu_main	     ( ERRFILE_DRIVER | 0x00620000 )
+#define ERRFILE_gcu_if		     ( ERRFILE_DRIVER | 0x00630000 )
 
 #define ERRFILE_scsi		     ( ERRFILE_DRIVER | 0x00700000 )
 #define ERRFILE_arbel		     ( ERRFILE_DRIVER | 0x00710000 )
