@@ -185,6 +185,20 @@ s32 e1000_set_mac_type(struct e1000_hw *hw)
 	case E1000_DEV_ID_82547GI:
 		mac->type = e1000_82547_rev_2;
 		break;
+	case E1000_DEV_ID_EP80579_MAC0:
+	case E1000_DEV_ID_EP80579_QA_MAC0:
+	case E1000_DEV_ID_EP80579_RESERVED0_MAC0:
+	case E1000_DEV_ID_EP80579_RESERVED1_MAC0:
+	case E1000_DEV_ID_EP80579_MAC1:
+	case E1000_DEV_ID_EP80579_QA_MAC1:
+	case E1000_DEV_ID_EP80579_RESERVED0_MAC1:
+	case E1000_DEV_ID_EP80579_RESERVED1_MAC1:
+	case E1000_DEV_ID_EP80579_MAC2:
+	case E1000_DEV_ID_EP80579_QA_MAC2:
+	case E1000_DEV_ID_EP80579_RESERVED0_MAC2:
+	case E1000_DEV_ID_EP80579_RESERVED1_MAC2:
+		mac->type = e1000_ep80579;
+		break;
 	default:
 		/* Should never have loaded on this device */
 		ret_val = -E1000_ERR_MAC_INIT;
@@ -256,6 +270,9 @@ s32 e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device)
 	case e1000_82547:
 	case e1000_82547_rev_2:
 		e1000_init_function_pointers_82541(hw);
+		break;
+	case e1000_ep80579:
+		e1000_init_function_pointers_ep80579(hw);
 		break;
 	default:
 		DBG("Hardware not supported\n");

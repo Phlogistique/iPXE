@@ -52,6 +52,7 @@ extern void    e1000_init_function_pointers_82542(struct e1000_hw *hw) __attribu
 extern void    e1000_init_function_pointers_82543(struct e1000_hw *hw) __attribute__((weak));
 extern void    e1000_init_function_pointers_82540(struct e1000_hw *hw) __attribute__((weak));
 extern void    e1000_init_function_pointers_82541(struct e1000_hw *hw) __attribute__((weak));
+extern void    e1000_init_function_pointers_ep80579(struct e1000_hw *hw) __attribute__((weak));
 
 s32  e1000_set_mac_type(struct e1000_hw *hw);
 s32  e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device);

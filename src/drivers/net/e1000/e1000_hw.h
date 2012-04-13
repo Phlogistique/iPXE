@@ -73,6 +73,22 @@ struct e1000_hw;
 #define E1000_DEV_ID_82547EI                  0x1019
 #define E1000_DEV_ID_82547EI_MOBILE           0x101A
 #define E1000_DEV_ID_82547GI                  0x1075
+
+#define E1000_DEV_ID_EP80579_MAC0             0x5040
+#define E1000_DEV_ID_EP80579_QA_MAC0          0x5041
+#define E1000_DEV_ID_EP80579_RESERVED0_MAC0   0x5042
+#define E1000_DEV_ID_EP80579_RESERVED1_MAC0   0x5043
+#define E1000_DEV_ID_EP80579_MAC1             0x5044
+#define E1000_DEV_ID_EP80579_QA_MAC1          0x5045
+#define E1000_DEV_ID_EP80579_RESERVED0_MAC1   0x5046
+#define E1000_DEV_ID_EP80579_RESERVED1_MAC1   0x5047
+#define E1000_DEV_ID_EP80579_MAC2             0x5048
+#define E1000_DEV_ID_EP80579_QA_MAC2          0x5049
+#define E1000_DEV_ID_EP80579_RESERVED0_MAC2   0x504A
+#define E1000_DEV_ID_EP80579_RESERVED1_MAC2   0x504B
+
+
+
 #define E1000_REVISION_0 0
 #define E1000_REVISION_1 1
 #define E1000_REVISION_2 2
@@ -99,6 +115,7 @@ enum e1000_mac_type {
 	e1000_82541_rev_2,
 	e1000_82547,
 	e1000_82547_rev_2,
+	e1000_ep80579,
 	e1000_num_macs  /* List is 1-based, so subtract 1 for true count. */
 };
 
@@ -687,6 +704,10 @@ struct e1000_dev_spec_82543 {
 	bool init_phy_disabled;
 };
 
+struct e1000_dev_spec_ep80579 {
+	u8 device_number;
+};
+
 struct e1000_hw {
 	void *back;
 
@@ -705,6 +726,7 @@ struct e1000_hw {
 		struct e1000_dev_spec_82541	_82541;
 		struct e1000_dev_spec_82542	_82542;
 		struct e1000_dev_spec_82543	_82543;
+		struct e1000_dev_spec_ep80579	ep80579;
 	} dev_spec;
 
 	u16 device_id;

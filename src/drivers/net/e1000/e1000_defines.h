@@ -1200,6 +1200,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
  * E = External
  */
 #define M88E1000_E_PHY_ID    0x01410C50
+#define M88E1141_E_PHY_ID    0x01410cd0
 #define M88E1000_I_PHY_ID    0x01410C30
 #define M88E1011_I_PHY_ID    0x01410C20
 #define IGP01E1000_I_PHY_ID  0x02A80380
@@ -1224,7 +1225,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define M88E1000_PHY_PAGE_SELECT   0x1D  /* Reg 29 for page number setting */
 #define M88E1000_PHY_GEN_CONTROL   0x1E  /* Its meaning depends on reg 29 */
 #define M88E1000_PHY_VCO_REG_BIT8  0x100 /* Bits 8 & 11 are adjusted for */
-#define M88E1000_PHY_VCO_REG_BIT11 0x800    /* improved BER performance */
+#define M88E1000_PHY_VCO_REG_BIT11 0x800 /* improved BER performance */
 
 /* M88E1000 PHY Specific Control Register */
 #define M88E1000_PSCR_JABBER_DISABLE    0x0001 /* 1=Jabber Function disabled */
@@ -1315,6 +1316,10 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define M88EC018_EPSCR_DOWNSHIFT_COUNTER_6X    0x0A00
 #define M88EC018_EPSCR_DOWNSHIFT_COUNTER_7X    0x0C00
 #define M88EC018_EPSCR_DOWNSHIFT_COUNTER_8X    0x0E00
+
+/* RGMII TX and RX Timing Control*/
+#define M88E1000_EPSCR_TX_TIME_CTRL       0x0002 /* Add Delay */
+#define M88E1000_EPSCR_RX_TIME_CTRL       0x0080 /* Add Delay */
 
 /*
  * Bits...

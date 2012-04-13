@@ -606,6 +606,23 @@ s32 e1000_copper_link_setup_m88(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
+	/*
+	 * For Truxton, it is necessary to add RGMII tx and rx
+	 * timing delay though the EXT_PHY_SPEC_CTRL register
+	 */
+	if (hw->mac.type == e1000_ep80579) {
+		ret_val = phy->ops.read_reg(hw, M88E1000_EXT_PHY_SPEC_CTRL, &phy_data);
+		if (ret_val)
+			goto out;
+
+		phy_data |= M88E1000_EPSCR_TX_TIME_CTRL;
+		phy_data |= M88E1000_EPSCR_RX_TIME_CTRL;
+
+		ret_val = phy->ops.write_reg(hw, M88E1000_EXT_PHY_SPEC_CTRL, phy_data);
+		if (ret_val)
+			goto out;
+	}
+
 	if (phy->revision < E1000_REVISION_4) {
 		/*
 		 * Force TX_CLK in the Extended PHY Specific Control Register

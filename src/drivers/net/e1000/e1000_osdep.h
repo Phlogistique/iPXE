@@ -53,12 +53,12 @@ u32 e1000_translate_register_82542(u32 reg);
 static inline u32 e1000_dump_cntr(struct e1000_hw *a, u32 reg, char *regname)
 {
 	u32 res = readl((a)->hw_addr + E1000_REGISTER(a, reg));
-#ifdef DEBUG_REGS
+//#ifdef DEBUG_REGS
 	if (res)
 		dbg_printf("NON-ZERO ERROR COUNTER: %s -> 0x%08x\n", regname, res);
-#else
-	(void) regname;
-#endif
+//#else
+//	(void) regname;
+//#endif
 	return res;
 }
 #ifndef DEBUG_REGS

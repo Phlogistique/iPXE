@@ -521,6 +521,9 @@ void e1000_reset ( struct e1000_adapter *adapter )
 	case e1000_82547_rev_2:
 		pba = E1000_PBA_30K;
 		break;
+	case e1000_ep80579:
+		pba = E1000_PBA_48K;
+		break;
 	case e1000_undefined:
 	case e1000_num_macs:
 		break;
@@ -645,6 +648,8 @@ static void e1000_poll ( struct net_device *netdev )
 	uint32_t icr;
 
 	DBGP ( "e1000_poll\n" );
+
+	//hw->mac.ops.clear_hw_cntrs(hw);
 
 	/* Acknowledge interrupts */
 	icr = E1000_READ_REG ( hw, E1000_ICR );
