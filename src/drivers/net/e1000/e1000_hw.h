@@ -31,7 +31,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #ifndef _E1000_HW_H_
 #define _E1000_HW_H_
 
-#include "e1000_osdep.h"
+#include "e1000_osdep_early.h" // XXX fix header dependancies -- see at bottom
 #include "e1000_regs.h"
 #include "e1000_defines.h"
 
@@ -725,4 +725,5 @@ s32  e1000_read_pcie_cap_reg(struct e1000_hw *hw, u32 reg, u16 *value);
 void e1000_read_pci_cfg(struct e1000_hw *hw, u32 reg, u16 *value);
 void e1000_write_pci_cfg(struct e1000_hw *hw, u32 reg, u16 *value);
 
+#include "e1000_osdep.h" // XXX fix header dependancies
 #endif

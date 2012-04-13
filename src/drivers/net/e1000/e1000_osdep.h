@@ -35,43 +35,35 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #ifndef _E1000_OSDEP_H_
 #define _E1000_OSDEP_H_
 
-#define u8         unsigned char
-#define bool       boolean_t
-#define dma_addr_t unsigned long
-#define __le16     uint16_t
-#define __le32     uint32_t
-#define __le64     uint64_t
+#include "e1000_osdep_early.h"
 
-#define __iomem
-
-#define ETH_FCS_LEN 4
-
-typedef int spinlock_t;
-typedef enum {
-    false = 0,
-    true = 1
-} boolean_t;
-
-#define usec_delay(x) udelay(x)
-#define msec_delay(x) mdelay(x)
-#define msec_delay_irq(x) mdelay(x)
-
-#define PCI_COMMAND_REGISTER   PCI_COMMAND
-#define CMD_MEM_WRT_INVALIDATE PCI_COMMAND_INVALIDATE
-#define ETH_ADDR_LEN           ETH_ALEN
-
-#define DEBUGFUNC(F) DBG(F "\n")
-
-#define DEBUGOUT(S)             DBG(S)
-#define DEBUGOUT1(S, A...)      DBG(S, A)
-
-#define DEBUGOUT2 DEBUGOUT1
-#define DEBUGOUT3 DEBUGOUT2
-#define DEBUGOUT7 DEBUGOUT3
-
+u32 e1000_translate_register_82542(u32 reg);
 #define E1000_REGISTER(a, reg) (((a)->mac.type >= e1000_82543) \
                                ? reg                           \
                                : e1000_translate_register_82542(reg))
+
+#define E1000_WRITE_FLUSH(a) E1000_READ_REG(a, E1000_STATUS)
+
+#define DBGF DEBUGFUNC(__func__)
+#define DEBUGFUNC(F) DBG("%s\n", F)
+
+#undef DEBUG_REGS
+
+#define E1000_DUMP_CNTR(a, reg) e1000_dump_cntr(a, reg, #reg)
+static inline u32 e1000_dump_cntr(struct e1000_hw *a, u32 reg, char *regname)
+{
+	u32 res = readl((a)->hw_addr + E1000_REGISTER(a, reg));
+#ifdef DEBUG_REGS
+	if (res)
+		dbg_printf("NON-ZERO ERROR COUNTER: %s -> 0x%08x\n", regname, res);
+#else
+	(void) regname;
+#endif
+	return res;
+}
+#ifndef DEBUG_REGS
+
+#define SILENT
 
 #define E1000_WRITE_REG(a, reg, value) \
     writel((value), ((a)->hw_addr + E1000_REGISTER(a, reg)))
@@ -99,11 +91,9 @@ typedef enum {
 #define E1000_READ_REG_ARRAY_BYTE(a, reg, offset) ( \
     readb((a)->hw_addr + E1000_REGISTER(a, reg) + (offset)))
 
-#define E1000_WRITE_REG_IO(a, reg, offset) do { \
+#define E1000_WRITE_REG_IO(a, reg, value) do { \
     outl(reg, ((a)->io_base));                  \
-    outl(offset, ((a)->io_base + 4));      } while(0)
-
-#define E1000_WRITE_FLUSH(a) E1000_READ_REG(a, E1000_STATUS)
+    outl(value, ((a)->io_base + 4));      } while(0)
 
 #define E1000_WRITE_FLASH_REG(a, reg, value) ( \
     writel((value), ((a)->flash_address + reg)))
@@ -114,5 +104,54 @@ typedef enum {
 #define E1000_READ_FLASH_REG(a, reg) (readl((a)->flash_address + reg))
 
 #define E1000_READ_FLASH_REG16(a, reg) (readw((a)->flash_address + reg))
+
+#else
+
+extern int e1000_dbg_reg_access;
+
+#define SILENT for(e1000_dbg_reg_access = 0; \
+		   !e1000_dbg_reg_access;    \
+		   e1000_dbg_reg_access = 1)
+
+static inline void e1000_write_reg(struct e1000_hw *a, u32 reg, u32 value, char *regname)
+{
+	if (e1000_dbg_reg_access) dbg_printf("%s <- 0x%08x\n", regname, value);
+	writel((value), ((a)->hw_addr + E1000_REGISTER(a, reg)));
+}
+
+static inline u32 e1000_read_reg(struct e1000_hw *a, u32 reg, char *regname)
+{
+	u32 res = readl((a)->hw_addr + E1000_REGISTER(a, reg));
+	if (e1000_dbg_reg_access) dbg_printf("%s -> 0x%08x\n", regname, res);
+	return res;
+}
+
+static inline void e1000_write_reg_array(struct e1000_hw *a, u32 reg, int offset, u32 value, char *regname)
+{
+	if (e1000_dbg_reg_access) dbg_printf("%s[%d] <- 0x%08x\n", regname, offset, value);
+	writel((value), ((a)->hw_addr + E1000_REGISTER(a, reg) + ((offset) << 2)));
+}
+
+static inline u32 e1000_read_reg_array(struct e1000_hw *a, u32 reg, int offset, char *regname)
+{
+	u32 res = readl((a)->hw_addr + E1000_REGISTER(a, reg) + ((offset) << 2));
+	if (e1000_dbg_reg_access) dbg_printf("%s[%d] -> 0x%08x\n", regname, offset, res);
+	return res;
+}
+
+static inline void e1000_write_reg_io(struct e1000_hw *a, u32 reg, u32 value, char *regname)
+{
+	if (e1000_dbg_reg_access) dbg_printf("%s <--IO-- 0x%08x\n", regname, value);
+	outl(reg, ((a)->io_base));
+	outl(value, ((a)->io_base + 4));
+}
+
+#define E1000_WRITE_REG(a, reg, value) e1000_write_reg(a, reg, value, #reg)
+#define E1000_READ_REG(a, reg) e1000_read_reg(a, reg, #reg)
+#define E1000_WRITE_REG_ARRAY(a, reg, offset, value) e1000_write_reg_array(a, reg, offset, value, #reg)
+#define E1000_READ_REG_ARRAY(a, reg, offset) e1000_read_reg_array(a, reg, offset, #reg)
+#define E1000_WRITE_REG_IO(a, reg, value) e1000_write_reg_io(a, reg, value, #reg)
+
+#endif
 
 #endif /* _E1000_OSDEP_H_ */

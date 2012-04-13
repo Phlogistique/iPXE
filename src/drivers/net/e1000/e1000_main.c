@@ -33,6 +33,8 @@ FILE_LICENCE ( GPL2_ONLY );
 
 #include "e1000.h"
 
+int e1000_dbg_reg_access = 1;
+
 /**
  * e1000_irq_disable - Disable interrupt generation
  *
