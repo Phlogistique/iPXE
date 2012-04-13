@@ -167,18 +167,18 @@ s32 e1000_get_phy_id(struct e1000_hw *hw)
 	if (!(phy->ops.read_reg))
 		goto out;
 
-		ret_val = phy->ops.read_reg(hw, PHY_ID1, &phy_id);
-		if (ret_val)
-			goto out;
+	ret_val = phy->ops.read_reg(hw, PHY_ID1, &phy_id);
+	if (ret_val)
+		goto out;
 
-		phy->id = (u32)(phy_id << 16);
-		usec_delay(20);
-		ret_val = phy->ops.read_reg(hw, PHY_ID2, &phy_id);
-		if (ret_val)
-			goto out;
+	phy->id = (u32)(phy_id << 16);
+	udelay(20);
+	ret_val = phy->ops.read_reg(hw, PHY_ID2, &phy_id);
+	if (ret_val)
+		goto out;
 
-		phy->id |= (u32)(phy_id & PHY_REVISION_MASK);
-		phy->revision = (u32)(phy_id & ~PHY_REVISION_MASK);
+	phy->id |= (u32)(phy_id & PHY_REVISION_MASK);
+	phy->revision = (u32)(phy_id & ~PHY_REVISION_MASK);
 
 out:
 	return ret_val;

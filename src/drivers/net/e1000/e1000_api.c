@@ -783,7 +783,7 @@ s32 e1000_read_phy_reg(struct e1000_hw *hw, u32 offset, u16 *data)
 	if (hw->phy.ops.read_reg)
 		return hw->phy.ops.read_reg(hw, offset, data);
 
-	return E1000_SUCCESS;
+	return E1000_NOT_IMPLEMENTED;
 }
 
 /**
@@ -800,7 +800,7 @@ s32 e1000_write_phy_reg(struct e1000_hw *hw, u32 offset, u16 data)
 	if (hw->phy.ops.write_reg)
 		return hw->phy.ops.write_reg(hw, offset, data);
 
-	return E1000_SUCCESS;
+	return E1000_NOT_IMPLEMENTED;
 }
 
 /**
