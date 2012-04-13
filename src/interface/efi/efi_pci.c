@@ -366,7 +366,8 @@ efipci_supported ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	}
 
 	/* Look for a driver */
-	if ( ( rc = pci_find_driver ( &efipci->pci ) ) != 0 ) {
+	if ( ( rc = pci_find_driver ( &efipci->pci ,
+				      PCI_DRIVER_LOAD_ORDER_ANY ) ) != 0 ) {
 		DBGCP ( efipci, "EFIPCI " PCI_FMT " has no driver\n",
 			PCI_ARGS ( &efipci->pci ) );
 		efirc = EFI_UNSUPPORTED;
@@ -414,7 +415,8 @@ efipci_start ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	}
 
 	/* Find driver */
-	if ( ( rc = pci_find_driver ( &efipci->pci ) ) != 0 ) {
+	if ( ( rc = pci_find_driver ( &efipci->pci ,
+				      PCI_DRIVER_LOAD_ORDER_ANY ) ) != 0 ) {
 		DBGC ( efipci, "EFIPCI " PCI_FMT " has no driver\n",
 		       PCI_ARGS ( &efipci->pci ) );
 		efirc = RC_TO_EFIRC ( rc );

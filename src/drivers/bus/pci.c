@@ -208,12 +208,14 @@ int pci_read_config ( struct pci_device *pci ) {
  * @v pci		PCI device
  * @ret rc		Return status code
  */
-int pci_find_driver ( struct pci_device *pci ) {
+int pci_find_driver ( struct pci_device *pci, int order ) {
 	struct pci_driver *driver;
 	struct pci_device_id *id;
 	unsigned int i;
 
 	for_each_table_entry ( driver, PCI_DRIVERS ) {
+		if ( order >= 0 && (unsigned) order != driver->load_order )
+			continue;
 		for ( i = 0 ; i < driver->id_count ; i++ ) {
 			id = &driver->ids[i];
 			if ( ( id->vendor != PCI_ANY_ID ) &&
@@ -279,8 +281,11 @@ static int pcibus_probe ( struct root_device *rootdev ) {
 	unsigned int busdevfn;
 	uint8_t hdrtype = 0;
 	int rc;
+	int order;
 
 	num_bus = pci_num_bus();
+
+	for ( order = PCI_DRIVER_LOAD_ORDER_EARLIEST ; order >= 0 ; order-- )
 	for ( busdevfn = 0 ; busdevfn < PCI_BUSDEVFN ( num_bus, 0, 0 ) ;
 	      busdevfn++ ) {
 
@@ -293,7 +298,7 @@ static int pcibus_probe ( struct root_device *rootdev ) {
 		}
 		memset ( pci, 0, sizeof ( *pci ) );
 		pci_init ( pci, busdevfn );
-			
+
 		/* Skip all but the first function on
 		 * non-multifunction cards
 		 */
@@ -309,7 +314,7 @@ static int pcibus_probe ( struct root_device *rootdev ) {
 			continue;
 
 		/* Look for a driver */
-		if ( ( rc = pci_find_driver ( pci ) ) != 0 ) {
+		if ( ( rc = pci_find_driver ( pci, order ) ) != 0 ) {
 			DBGC ( pci, PCI_FMT " (%04x:%04x) has no driver\n",
 			       PCI_ARGS ( pci ), pci->vendor, pci->device );
 			continue;

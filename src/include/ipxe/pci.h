@@ -316,12 +316,24 @@ struct pci_device {
 	struct pci_device_id *id;
 };
 
+#define PCI_DRIVER_LOAD_ORDER_EARLIEST 1
+
+/** Only use this as an argument to pci_find_driver */
+#define PCI_DRIVER_LOAD_ORDER_ANY -1
+
 /** A PCI driver */
 struct pci_driver {
 	/** PCI ID table */
 	struct pci_device_id *ids;
 	/** Number of entries in PCI ID table */
 	unsigned int id_count;
+
+	/** Priority in driver load order. Highest is earliest.
+	 *
+	 * 0 <= load_order <= PCI_DRIVER_LOAD_ORDER_EARLIEST
+	 */
+	unsigned int load_order;
+
 	/**
 	 * Probe device
 	 *
@@ -385,7 +397,7 @@ extern void adjust_pci_device ( struct pci_device *pci );
 extern unsigned long pci_bar_start ( struct pci_device *pci,
 				     unsigned int reg );
 extern int pci_read_config ( struct pci_device *pci );
-extern int pci_find_driver ( struct pci_device *pci );
+extern int pci_find_driver ( struct pci_device *pci, int order );
 extern int pci_probe ( struct pci_device *pci );
 extern void pci_remove ( struct pci_device *pci );
 extern int pci_find_capability ( struct pci_device *pci, int capability );
