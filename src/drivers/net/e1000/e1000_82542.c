@@ -191,11 +191,11 @@ static s32 e1000_reset_hw_82542(struct e1000_hw *hw)
 	DEBUGFUNC("e1000_reset_hw_82542");
 
 	if (hw->revision_id == E1000_REVISION_2) {
-		DEBUGOUT("Disabling MWI on 82542 rev 2\n");
+		DBG("Disabling MWI on 82542 rev 2\n");
 		e1000_pci_clear_mwi(hw);
 	}
 
-	DEBUGOUT("Masking off all interrupts\n");
+	DBG("Masking off all interrupts\n");
 	E1000_WRITE_REG(hw, E1000_IMC, 0xffffffff);
 
 	E1000_WRITE_REG(hw, E1000_RCTL, 0);
@@ -206,21 +206,21 @@ static s32 e1000_reset_hw_82542(struct e1000_hw *hw)
 	 * Delay to allow any outstanding PCI transactions to complete before
 	 * resetting the device
 	 */
-	msec_delay(10);
+	mdelay(10);
 
 	ctrl = E1000_READ_REG(hw, E1000_CTRL);
 
-	DEBUGOUT("Issuing a global reset to 82542/82543 MAC\n");
+	DBG("Issuing a global reset to 82542/82543 MAC\n");
 	E1000_WRITE_REG(hw, E1000_CTRL, ctrl | E1000_CTRL_RST);
 
 	hw->nvm.ops.reload(hw);
-	msec_delay(2);
+	mdelay(2);
 
 	E1000_WRITE_REG(hw, E1000_IMC, 0xffffffff);
 	E1000_READ_REG(hw, E1000_ICR);
 
 	if (hw->revision_id == E1000_REVISION_2) {
-		if (bus->pci_cmd_word & CMD_MEM_WRT_INVALIDATE)
+		if (bus->pci_cmd_word & PCI_COMMAND_INVALIDATE)
 			e1000_pci_set_mwi(hw);
 	}
 
@@ -249,11 +249,11 @@ static s32 e1000_init_hw_82542(struct e1000_hw *hw)
 
 	/* For 82542 (rev 2.0), disable MWI and put the receiver into reset */
 	if (hw->revision_id == E1000_REVISION_2) {
-		DEBUGOUT("Disabling MWI on 82542 rev 2.0\n");
+		DBG("Disabling MWI on 82542 rev 2.0\n");
 		e1000_pci_clear_mwi(hw);
 		E1000_WRITE_REG(hw, E1000_RCTL, E1000_RCTL_RST);
 		E1000_WRITE_FLUSH(hw);
-		msec_delay(5);
+		mdelay(5);
 	}
 
 	/* Setup the receive address. */
@@ -263,13 +263,13 @@ static s32 e1000_init_hw_82542(struct e1000_hw *hw)
 	if (hw->revision_id == E1000_REVISION_2) {
 		E1000_WRITE_REG(hw, E1000_RCTL, 0);
 		E1000_WRITE_FLUSH(hw);
-		msec_delay(1);
-		if (hw->bus.pci_cmd_word & CMD_MEM_WRT_INVALIDATE)
+		mdelay(1);
+		if (hw->bus.pci_cmd_word & PCI_COMMAND_INVALIDATE)
 			e1000_pci_set_mwi(hw);
 	}
 
 	/* Zero out the Multicast HASH table */
-	DEBUGOUT("Zeroing the MTA\n");
+	DBG("Zeroing the MTA\n");
 	for (i = 0; i < mac->mta_reg_count; i++)
 		E1000_WRITE_REG_ARRAY(hw, E1000_MTA, i, 0);
 
@@ -329,7 +329,7 @@ static s32 e1000_setup_link_82542(struct e1000_hw *hw)
 	 */
 	hw->fc.current_mode = hw->fc.requested_mode;
 
-	DEBUGOUT1("After fix-ups FlowControl is now = %x\n",
+	DBG("After fix-ups FlowControl is now = %x\n",
 	                                             hw->fc.current_mode);
 
 	/* Call the necessary subroutine to configure the link. */
@@ -343,7 +343,7 @@ static s32 e1000_setup_link_82542(struct e1000_hw *hw)
 	 * control is disabled, because it does not hurt anything to
 	 * initialize these registers.
 	 */
-	DEBUGOUT("Initializing Flow Control address, type and timer regs\n");
+	DBG("Initializing Flow Control address, type and timer regs\n");
 
 	E1000_WRITE_REG(hw, E1000_FCAL, FLOW_CONTROL_ADDRESS_LOW);
 	E1000_WRITE_REG(hw, E1000_FCAH, FLOW_CONTROL_ADDRESS_HIGH);

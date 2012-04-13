@@ -243,18 +243,18 @@ s32 e1000_read_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 *data)
 	 * the lower time out
 	 */
 	for (i = 0; i < (E1000_GEN_POLL_TIMEOUT * 3); i++) {
-		usec_delay(50);
+		udelay(50);
 		mdic = E1000_READ_REG(hw, E1000_MDIC);
 		if (mdic & E1000_MDIC_READY)
 			break;
 	}
 	if (!(mdic & E1000_MDIC_READY)) {
-		DEBUGOUT("MDI Read did not complete\n");
+		DBG("MDI Read did not complete\n");
 		ret_val = -E1000_ERR_PHY;
 		goto out;
 	}
 	if (mdic & E1000_MDIC_ERROR) {
-		DEBUGOUT("MDI Error\n");
+		DBG("MDI Error\n");
 		ret_val = -E1000_ERR_PHY;
 		goto out;
 	}
@@ -298,18 +298,18 @@ s32 e1000_write_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 data)
 	 * the lower time out
 	 */
 	for (i = 0; i < (E1000_GEN_POLL_TIMEOUT * 3); i++) {
-		usec_delay(50);
+		udelay(50);
 		mdic = E1000_READ_REG(hw, E1000_MDIC);
 		if (mdic & E1000_MDIC_READY)
 			break;
 	}
 	if (!(mdic & E1000_MDIC_READY)) {
-		DEBUGOUT("MDI Write did not complete\n");
+		DBG("MDI Write did not complete\n");
 		ret_val = -E1000_ERR_PHY;
 		goto out;
 	}
 	if (mdic & E1000_MDIC_ERROR) {
-		DEBUGOUT("MDI Error\n");
+		DBG("MDI Error\n");
 		ret_val = -E1000_ERR_PHY;
 		goto out;
 	}
@@ -492,7 +492,7 @@ s32 e1000_read_kmrn_reg_generic(struct e1000_hw *hw, u32 offset, u16 *data)
 	               E1000_KMRNCTRLSTA_OFFSET) | E1000_KMRNCTRLSTA_REN;
 	E1000_WRITE_REG(hw, E1000_KMRNCTRLSTA, kmrnctrlsta);
 
-	usec_delay(2);
+	udelay(2);
 
 	kmrnctrlsta = E1000_READ_REG(hw, E1000_KMRNCTRLSTA);
 	*data = (u16)kmrnctrlsta;
@@ -531,7 +531,7 @@ s32 e1000_write_kmrn_reg_generic(struct e1000_hw *hw, u32 offset, u16 data)
 	               E1000_KMRNCTRLSTA_OFFSET) | data;
 	E1000_WRITE_REG(hw, E1000_KMRNCTRLSTA, kmrnctrlsta);
 
-	usec_delay(2);
+	udelay(2);
 	hw->phy.ops.release(hw);
 
 out:
@@ -639,7 +639,7 @@ s32 e1000_copper_link_setup_m88(struct e1000_hw *hw)
 	/* Commit the changes. */
 	ret_val = phy->ops.commit(hw);
 	if (ret_val) {
-		DEBUGOUT("Error committing the PHY changes\n");
+		DBG("Error committing the PHY changes\n");
 		goto out;
 	}
 
@@ -669,7 +669,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 
 	ret_val = hw->phy.ops.reset(hw);
 	if (ret_val) {
-		DEBUGOUT("Error resetting the PHY.\n");
+		DBG("Error resetting the PHY.\n");
 		goto out;
 	}
 
@@ -677,7 +677,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 	 * Wait 100ms for MAC to configure PHY from NVM settings, to avoid
 	 * timeout issues when LFS is enabled.
 	 */
-	msec_delay(100);
+	mdelay(100);
 
 	/*
 	 * The NVM settings will configure LPLU in D3 for
@@ -687,7 +687,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 		/* disable lplu d3 during driver init */
 		ret_val = hw->phy.ops.set_d3_lplu_state(hw, false);
 		if (ret_val) {
-			DEBUGOUT("Error Disabling LPLU D3\n");
+			DBG("Error Disabling LPLU D3\n");
 			goto out;
 		}
 	}
@@ -696,7 +696,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 	if (hw->phy.ops.set_d0_lplu_state) {
 		ret_val = hw->phy.ops.set_d0_lplu_state(hw, false);
 		if (ret_val) {
-			DEBUGOUT("Error Disabling LPLU D0\n");
+			DBG("Error Disabling LPLU D0\n");
 			goto out;
 		}
 	}
@@ -819,13 +819,13 @@ s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 	if (phy->autoneg_advertised == 0)
 		phy->autoneg_advertised = phy->autoneg_mask;
 
-	DEBUGOUT("Reconfiguring auto-neg advertisement params\n");
+	DBG("Reconfiguring auto-neg advertisement params\n");
 	ret_val = e1000_phy_setup_autoneg(hw);
 	if (ret_val) {
-		DEBUGOUT("Error Setting up Auto-Negotiation\n");
+		DBG("Error Setting up Auto-Negotiation\n");
 		goto out;
 	}
-	DEBUGOUT("Restarting Auto-Neg\n");
+	DBG("Restarting Auto-Neg\n");
 
 	/*
 	 * Restart auto-negotiation by setting the Auto Neg Enable bit and
@@ -847,8 +847,7 @@ s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 	if (phy->autoneg_wait_to_complete) {
 		ret_val = hw->mac.ops.wait_autoneg(hw);
 		if (ret_val) {
-			DEBUGOUT("Error while waiting for "
-			         "autoneg to complete\n");
+			DBG("Error while waiting for autoneg to complete\n");
 			goto out;
 		}
 	}
@@ -911,39 +910,39 @@ s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 	                         NWAY_AR_10T_HD_CAPS);
 	mii_1000t_ctrl_reg &= ~(CR_1000T_HD_CAPS | CR_1000T_FD_CAPS);
 
-	DEBUGOUT1("autoneg_advertised %x\n", phy->autoneg_advertised);
+	DBG("autoneg_advertised %x\n", phy->autoneg_advertised);
 
 	/* Do we want to advertise 10 Mb Half Duplex? */
 	if (phy->autoneg_advertised & ADVERTISE_10_HALF) {
-		DEBUGOUT("Advertise 10mb Half duplex\n");
+		DBG("Advertise 10mb Half duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_10T_HD_CAPS;
 	}
 
 	/* Do we want to advertise 10 Mb Full Duplex? */
 	if (phy->autoneg_advertised & ADVERTISE_10_FULL) {
-		DEBUGOUT("Advertise 10mb Full duplex\n");
+		DBG("Advertise 10mb Full duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_10T_FD_CAPS;
 	}
 
 	/* Do we want to advertise 100 Mb Half Duplex? */
 	if (phy->autoneg_advertised & ADVERTISE_100_HALF) {
-		DEBUGOUT("Advertise 100mb Half duplex\n");
+		DBG("Advertise 100mb Half duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_100TX_HD_CAPS;
 	}
 
 	/* Do we want to advertise 100 Mb Full Duplex? */
 	if (phy->autoneg_advertised & ADVERTISE_100_FULL) {
-		DEBUGOUT("Advertise 100mb Full duplex\n");
+		DBG("Advertise 100mb Full duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_100TX_FD_CAPS;
 	}
 
 	/* We do not allow the Phy to advertise 1000 Mb Half Duplex */
 	if (phy->autoneg_advertised & ADVERTISE_1000_HALF)
-		DEBUGOUT("Advertise 1000mb Half duplex request denied!\n");
+		DBG("Advertise 1000mb Half duplex request denied!\n");
 
 	/* Do we want to advertise 1000 Mb Full Duplex? */
 	if (phy->autoneg_advertised & ADVERTISE_1000_FULL) {
-		DEBUGOUT("Advertise 1000mb Full duplex\n");
+		DBG("Advertise 1000mb Full duplex\n");
 		mii_1000t_ctrl_reg |= CR_1000T_FD_CAPS;
 	}
 
@@ -1002,7 +1001,7 @@ s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 		mii_autoneg_adv_reg |= (NWAY_AR_ASM_DIR | NWAY_AR_PAUSE);
 		break;
 	default:
-		DEBUGOUT("Flow control param set incorrectly\n");
+		DBG("Flow control param set incorrectly\n");
 		ret_val = -E1000_ERR_CONFIG;
 		goto out;
 	}
@@ -1011,7 +1010,7 @@ s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	DEBUGOUT1("Auto-Neg Advertising %x\n", mii_autoneg_adv_reg);
+	DBG("Auto-Neg Advertising %x\n", mii_autoneg_adv_reg);
 
 	if (phy->autoneg_mask & ADVERTISE_1000_FULL) {
 		ret_val = phy->ops.write_reg(hw,
@@ -1055,10 +1054,10 @@ s32 e1000_setup_copper_link_generic(struct e1000_hw *hw)
 		 * PHY will be set to 10H, 10F, 100H or 100F
 		 * depending on user settings.
 		 */
-		DEBUGOUT("Forcing Speed and Duplex\n");
+		DBG("Forcing Speed and Duplex\n");
 		ret_val = hw->phy.ops.force_speed_duplex(hw);
 		if (ret_val) {
-			DEBUGOUT("Error Forcing Speed and Duplex\n");
+			DBG("Error Forcing Speed and Duplex\n");
 			goto out;
 		}
 #endif
@@ -1076,11 +1075,11 @@ s32 e1000_setup_copper_link_generic(struct e1000_hw *hw)
 		goto out;
 
 	if (link) {
-		DEBUGOUT("Valid link established!!!\n");
+		DBG("Valid link established!!!\n");
 		e1000_config_collision_dist_generic(hw);
 		ret_val = e1000_config_fc_after_link_up_generic(hw);
 	} else {
-		DEBUGOUT("Unable to establish link!!!\n");
+		DBG("Unable to establish link!!!\n");
 	}
 
 out:
@@ -1130,12 +1129,12 @@ s32 e1000_phy_force_speed_duplex_igp(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	DEBUGOUT1("IGP PSCR: %X\n", phy_data);
+	DBG("IGP PSCR: %X\n", phy_data);
 
-	usec_delay(1);
+	udelay(1);
 
 	if (phy->autoneg_wait_to_complete) {
-		DEBUGOUT("Waiting for forced speed/duplex link on IGP phy.\n");
+		DBG("Waiting for forced speed/duplex link on IGP phy.\n");
 
 		ret_val = e1000_phy_has_link_generic(hw,
 		                                     PHY_FORCE_LIMIT,
@@ -1145,7 +1144,7 @@ s32 e1000_phy_force_speed_duplex_igp(struct e1000_hw *hw)
 			goto out;
 
 		if (!link)
-			DEBUGOUT("Link taking longer than expected.\n");
+			DBG("Link taking longer than expected.\n");
 
 		/* Try once more */
 		ret_val = e1000_phy_has_link_generic(hw,
@@ -1192,7 +1191,7 @@ s32 e1000_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	DEBUGOUT1("M88E1000 PSCR: %X\n", phy_data);
+	DBG("M88E1000 PSCR: %X\n", phy_data);
 
 	ret_val = phy->ops.read_reg(hw, PHY_CONTROL, &phy_data);
 	if (ret_val)
@@ -1210,7 +1209,7 @@ s32 e1000_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 		goto out;
 
 	if (phy->autoneg_wait_to_complete) {
-		DEBUGOUT("Waiting for forced speed/duplex link on M88 phy.\n");
+		DBG("Waiting for forced speed/duplex link on M88 phy.\n");
 
 		ret_val = e1000_phy_has_link_generic(hw, PHY_FORCE_LIMIT,
 		                                     100000, &link);
@@ -1312,12 +1311,12 @@ s32 e1000_phy_force_speed_duplex_ife(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	DEBUGOUT1("IFE PMC: %X\n", data);
+	DBG("IFE PMC: %X\n", data);
 
-	usec_delay(1);
+	udelay(1);
 
 	if (phy->autoneg_wait_to_complete) {
-		DEBUGOUT("Waiting for forced speed/duplex link on IFE phy.\n");
+		DBG("Waiting for forced speed/duplex link on IFE phy.\n");
 
 		ret_val = e1000_phy_has_link_generic(hw,
 		                                     PHY_FORCE_LIMIT,
@@ -1327,7 +1326,7 @@ s32 e1000_phy_force_speed_duplex_ife(struct e1000_hw *hw)
 			goto out;
 
 		if (!link)
-			DEBUGOUT("Link taking longer than expected.\n");
+			DBG("Link taking longer than expected.\n");
 
 		/* Try once more */
 		ret_val = e1000_phy_has_link_generic(hw,
@@ -1379,11 +1378,11 @@ void e1000_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl)
 	if (mac->forced_speed_duplex & E1000_ALL_HALF_DUPLEX) {
 		ctrl &= ~E1000_CTRL_FD;
 		*phy_ctrl &= ~MII_CR_FULL_DUPLEX;
-		DEBUGOUT("Half Duplex\n");
+		DBG("Half Duplex\n");
 	} else {
 		ctrl |= E1000_CTRL_FD;
 		*phy_ctrl |= MII_CR_FULL_DUPLEX;
-		DEBUGOUT("Full Duplex\n");
+		DBG("Full Duplex\n");
 	}
 
 	/* Forcing 10mb or 100mb? */
@@ -1391,12 +1390,12 @@ void e1000_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl)
 		ctrl |= E1000_CTRL_SPD_100;
 		*phy_ctrl |= MII_CR_SPEED_100;
 		*phy_ctrl &= ~(MII_CR_SPEED_1000 | MII_CR_SPEED_10);
-		DEBUGOUT("Forcing 100mb\n");
+		DBG("Forcing 100mb\n");
 	} else {
 		ctrl &= ~(E1000_CTRL_SPD_1000 | E1000_CTRL_SPD_100);
 		*phy_ctrl |= MII_CR_SPEED_10;
 		*phy_ctrl &= ~(MII_CR_SPEED_1000 | MII_CR_SPEED_100);
-		DEBUGOUT("Forcing 10mb\n");
+		DBG("Forcing 10mb\n");
 	}
 
 	e1000_config_collision_dist_generic(hw);
@@ -1678,7 +1677,7 @@ s32 e1000_wait_autoneg_generic(struct e1000_hw *hw)
 			break;
 		if (phy_status & MII_SR_AUTONEG_COMPLETE)
 			break;
-		msec_delay(100);
+		mdelay(100);
 	}
 
 	/*
@@ -1721,17 +1720,14 @@ s32 e1000_phy_has_link_generic(struct e1000_hw *hw, u32 iterations,
 			 * ownership of the resources, wait and try again to
 			 * see if they have relinquished the resources yet.
 			 */
-			usec_delay(usec_interval);
+			udelay(usec_interval);
 		}
 		ret_val = hw->phy.ops.read_reg(hw, PHY_STATUS, &phy_status);
 		if (ret_val)
 			break;
 		if (phy_status & MII_SR_LINK_STATUS)
 			break;
-		if (usec_interval >= 1000)
-			msec_delay_irq(usec_interval/1000);
-		else
-			usec_delay(usec_interval);
+		udelay(usec_interval);
 	}
 
 	*success = (i < iterations) ? true : false;
@@ -1878,7 +1874,7 @@ s32 e1000_get_phy_info_m88(struct e1000_hw *hw)
 	DEBUGFUNC("e1000_get_phy_info_m88");
 
 	if (hw->phy.media_type != e1000_media_type_copper) {
-		DEBUGOUT("Phy info is only valid for copper media\n");
+		DBG("Phy info is only valid for copper media\n");
 		ret_val = -E1000_ERR_CONFIG;
 		goto out;
 	}
@@ -1888,7 +1884,7 @@ s32 e1000_get_phy_info_m88(struct e1000_hw *hw)
 		goto out;
 
 	if (!link) {
-		DEBUGOUT("Phy info is only valid if link is up\n");
+		DBG("Phy info is only valid if link is up\n");
 		ret_val = -E1000_ERR_CONFIG;
 		goto out;
 	}
@@ -1963,7 +1959,7 @@ s32 e1000_get_phy_info_igp(struct e1000_hw *hw)
 		goto out;
 
 	if (!link) {
-		DEBUGOUT("Phy info is only valid if link is up\n");
+		DBG("Phy info is only valid if link is up\n");
 		ret_val = -E1000_ERR_CONFIG;
 		goto out;
 	}
@@ -2037,7 +2033,7 @@ s32 e1000_phy_sw_reset_generic(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	usec_delay(1);
+	udelay(1);
 
 out:
 	return ret_val;
@@ -2074,12 +2070,12 @@ s32 e1000_phy_hw_reset_generic(struct e1000_hw *hw)
 	E1000_WRITE_REG(hw, E1000_CTRL, ctrl | E1000_CTRL_PHY_RST);
 	E1000_WRITE_FLUSH(hw);
 
-	usec_delay(phy->reset_delay_us);
+	udelay(phy->reset_delay_us);
 
 	E1000_WRITE_REG(hw, E1000_CTRL, ctrl);
 	E1000_WRITE_FLUSH(hw);
 
-	usec_delay(150);
+	udelay(150);
 
 	phy->ops.release(hw);
 
@@ -2100,7 +2096,7 @@ s32 e1000_get_cfg_done_generic(struct e1000_hw *hw __unused)
 {
 	DEBUGFUNC("e1000_get_cfg_done_generic");
 
-	msec_delay_irq(10);
+	mdelay(10);
 
 	return E1000_SUCCESS;
 }
@@ -2113,7 +2109,7 @@ s32 e1000_get_cfg_done_generic(struct e1000_hw *hw __unused)
  **/
 s32 e1000_phy_init_script_igp3(struct e1000_hw *hw)
 {
-	DEBUGOUT("Running IGP 3 PHY init script\n");
+	DBG("Running IGP 3 PHY init script\n");
 
 	/* PHY init IGP 3 */
 	/* Enable rise/fall, 10-mode work in class-A */
@@ -2261,7 +2257,7 @@ s32 e1000_determine_phy_address(struct e1000_hw *hw)
 				ret_val = E1000_SUCCESS;
 				goto out;
 			}
-			msec_delay(1);
+			mdelay(1);
 			i++;
 		} while (i < 10);
 	}
@@ -2304,5 +2300,5 @@ void e1000_power_down_phy_copper(struct e1000_hw *hw)
 	hw->phy.ops.read_reg(hw, PHY_CONTROL, &mii_reg);
 	mii_reg |= MII_CR_POWER_DOWN;
 	hw->phy.ops.write_reg(hw, PHY_CONTROL, mii_reg);
-	msec_delay(1);
+	mdelay(1);
 }

@@ -128,10 +128,10 @@ static s32 e1000_init_phy_params_82543(struct e1000_hw *hw)
 	if (!e1000_init_phy_disabled_82543(hw)) {
 		ret_val = phy->ops.reset(hw);
 		if (ret_val) {
-			DEBUGOUT("Resetting PHY during init failed.\n");
+			DBG("Resetting PHY during init failed.\n");
 			goto out;
 		}
-		msec_delay(20);
+		mdelay(20);
 	}
 
 	ret_val = e1000_get_phy_id(hw);
@@ -293,7 +293,7 @@ static bool e1000_tbi_compatibility_enabled_82543(struct e1000_hw *hw)
 	DEBUGFUNC("e1000_tbi_compatibility_enabled_82543");
 
 	if (hw->mac.type != e1000_82543) {
-		DEBUGOUT("TBI compatibility workaround for 82543 only.\n");
+		DBG("TBI compatibility workaround for 82543 only.\n");
 		goto out;
 	}
 
@@ -318,7 +318,7 @@ static void e1000_set_tbi_compatibility_82543(struct e1000_hw *hw, bool state)
 	DEBUGFUNC("e1000_set_tbi_compatibility_82543");
 
 	if (hw->mac.type != e1000_82543) {
-		DEBUGOUT("TBI compatibility workaround for 82543 only.\n");
+		DBG("TBI compatibility workaround for 82543 only.\n");
 		goto out;
 	}
 
@@ -346,7 +346,7 @@ bool e1000_tbi_sbp_enabled_82543(struct e1000_hw *hw)
 	DEBUGFUNC("e1000_tbi_sbp_enabled_82543");
 
 	if (hw->mac.type != e1000_82543) {
-		DEBUGOUT("TBI compatibility workaround for 82543 only.\n");
+		DBG("TBI compatibility workaround for 82543 only.\n");
 		goto out;
 	}
 
@@ -499,7 +499,7 @@ static s32 e1000_read_phy_reg_82543(struct e1000_hw *hw, u32 offset, u16 *data)
 	DEBUGFUNC("e1000_read_phy_reg_82543");
 
 	if (offset > MAX_PHY_REG_ADDRESS) {
-		DEBUGOUT1("PHY Address %d is out of range\n", offset);
+		DBG("PHY Address %d is out of range\n", offset);
 		ret_val = -E1000_ERR_PARAM;
 		goto out;
 	}
@@ -555,7 +555,7 @@ static s32 e1000_write_phy_reg_82543(struct e1000_hw *hw, u32 offset, u16 data)
 	DEBUGFUNC("e1000_write_phy_reg_82543");
 
 	if (offset > MAX_PHY_REG_ADDRESS) {
-		DEBUGOUT1("PHY Address %d is out of range\n", offset);
+		DBG("PHY Address %d is out of range\n", offset);
 		ret_val = -E1000_ERR_PARAM;
 		goto out;
 	}
@@ -602,7 +602,7 @@ static void e1000_raise_mdi_clk_82543(struct e1000_hw *hw, u32 *ctrl)
 	 */
 	E1000_WRITE_REG(hw, E1000_CTRL, (*ctrl | E1000_CTRL_MDC));
 	E1000_WRITE_FLUSH(hw);
-	usec_delay(10);
+	udelay(10);
 }
 
 /**
@@ -621,7 +621,7 @@ static void e1000_lower_mdi_clk_82543(struct e1000_hw *hw, u32 *ctrl)
 	 */
 	E1000_WRITE_REG(hw, E1000_CTRL, (*ctrl & ~E1000_CTRL_MDC));
 	E1000_WRITE_FLUSH(hw);
-	usec_delay(10);
+	udelay(10);
 }
 
 /**
@@ -666,7 +666,7 @@ static void e1000_shift_out_mdi_bits_82543(struct e1000_hw *hw, u32 data,
 		E1000_WRITE_REG(hw, E1000_CTRL, ctrl);
 		E1000_WRITE_FLUSH(hw);
 
-		usec_delay(10);
+		udelay(10);
 
 		e1000_raise_mdi_clk_82543(hw, &ctrl);
 		e1000_lower_mdi_clk_82543(hw, &ctrl);
@@ -816,26 +816,26 @@ static s32 e1000_polarity_reversal_workaround_82543(struct e1000_hw *hw)
 
 		if ((mii_status_reg & ~MII_SR_LINK_STATUS) == 0)
 			break;
-		msec_delay_irq(100);
+		mdelay(100);
 	}
 
 	/* Recommended delay time after link has been lost */
-	msec_delay_irq(1000);
+	mdelay(1000);
 
 	/* Now we will re-enable the transmitter on the PHY */
 
 	ret_val = hw->phy.ops.write_reg(hw, M88E1000_PHY_PAGE_SELECT, 0x0019);
 	if (ret_val)
 		goto out;
-	msec_delay_irq(50);
+	mdelay(50);
 	ret_val = hw->phy.ops.write_reg(hw, M88E1000_PHY_GEN_CONTROL, 0xFFF0);
 	if (ret_val)
 		goto out;
-	msec_delay_irq(50);
+	mdelay(50);
 	ret_val = hw->phy.ops.write_reg(hw, M88E1000_PHY_GEN_CONTROL, 0xFF00);
 	if (ret_val)
 		goto out;
-	msec_delay_irq(50);
+	mdelay(50);
 	ret_val = hw->phy.ops.write_reg(hw, M88E1000_PHY_GEN_CONTROL, 0x0000);
 	if (ret_val)
 		goto out;
@@ -882,14 +882,14 @@ static s32 e1000_phy_hw_reset_82543(struct e1000_hw *hw)
 	E1000_WRITE_REG(hw, E1000_CTRL_EXT, ctrl_ext);
 	E1000_WRITE_FLUSH(hw);
 
-	msec_delay(10);
+	mdelay(10);
 
 	/* ...then take it out of reset. */
 	ctrl_ext |= E1000_CTRL_EXT_SDP4_DATA;
 	E1000_WRITE_REG(hw, E1000_CTRL_EXT, ctrl_ext);
 	E1000_WRITE_FLUSH(hw);
 
-	usec_delay(150);
+	udelay(150);
 
 	if (!(hw->phy.ops.get_cfg_done))
 		return E1000_SUCCESS;
@@ -912,7 +912,7 @@ static s32 e1000_reset_hw_82543(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_reset_hw_82543");
 
-	DEBUGOUT("Masking off all interrupts\n");
+	DBG("Masking off all interrupts\n");
 	E1000_WRITE_REG(hw, E1000_IMC, 0xffffffff);
 
 	E1000_WRITE_REG(hw, E1000_RCTL, 0);
@@ -925,11 +925,11 @@ static s32 e1000_reset_hw_82543(struct e1000_hw *hw)
 	 * Delay to allow any outstanding PCI transactions to complete before
 	 * resetting the device
 	 */
-	msec_delay(10);
+	mdelay(10);
 
 	ctrl = E1000_READ_REG(hw, E1000_CTRL);
 
-	DEBUGOUT("Issuing a global reset to 82543/82544 MAC\n");
+	DBG("Issuing a global reset to 82543/82544 MAC\n");
 	if (hw->mac.type == e1000_82543) {
 		E1000_WRITE_REG(hw, E1000_CTRL, ctrl | E1000_CTRL_RST);
 	} else {
@@ -945,7 +945,7 @@ static s32 e1000_reset_hw_82543(struct e1000_hw *hw)
 	 * settings to device.
 	 */
 	hw->nvm.ops.reload(hw);
-	msec_delay(2);
+	mdelay(2);
 
 	/* Masking off and clearing any pending interrupts */
 	E1000_WRITE_REG(hw, E1000_IMC, 0xffffffff);
@@ -978,7 +978,7 @@ static s32 e1000_init_hw_82543(struct e1000_hw *hw)
 	e1000_init_rx_addrs_generic(hw, mac->rar_entry_count);
 
 	/* Zero out the Multicast HASH table */
-	DEBUGOUT("Zeroing the MTA\n");
+	DBG("Zeroing the MTA\n");
 	for (i = 0; i < mac->mta_reg_count; i++) {
 		E1000_WRITE_REG_ARRAY(hw, E1000_MTA, i, 0);
 		E1000_WRITE_FLUSH(hw);
@@ -1041,7 +1041,7 @@ static s32 e1000_setup_link_82543(struct e1000_hw *hw)
 	if (hw->mac.type == e1000_82543) {
 		ret_val = hw->nvm.ops.read(hw, NVM_INIT_CONTROL2_REG, 1, &data);
 		if (ret_val) {
-			DEBUGOUT("NVM Read Error\n");
+			DBG("NVM Read Error\n");
 			ret_val = -E1000_ERR_NVM;
 			goto out;
 		}
@@ -1110,10 +1110,10 @@ static s32 e1000_setup_copper_link_82543(struct e1000_hw *hw)
 		 * depending on user settings.
 		 */
 #if 0
-		DEBUGOUT("Forcing Speed and Duplex\n");
+		DBG("Forcing Speed and Duplex\n");
 		ret_val = e1000_phy_force_speed_duplex_82543(hw);
 		if (ret_val) {
-			DEBUGOUT("Error Forcing Speed and Duplex\n");
+			DBG("Error Forcing Speed and Duplex\n");
 			goto out;
 		}
 #endif
@@ -1132,7 +1132,7 @@ static s32 e1000_setup_copper_link_82543(struct e1000_hw *hw)
 
 
 	if (link) {
-		DEBUGOUT("Valid link established!!!\n");
+		DBG("Valid link established!!!\n");
 		/* Config the MAC and PHY after link is up */
 		if (hw->mac.type == e1000_82544) {
 			e1000_config_collision_dist_generic(hw);
@@ -1143,7 +1143,7 @@ static s32 e1000_setup_copper_link_82543(struct e1000_hw *hw)
 		}
 		ret_val = e1000_config_fc_after_link_up_generic(hw);
 	} else {
-		DEBUGOUT("Unable to establish link!!!\n");
+		DBG("Unable to establish link!!!\n");
 	}
 
 out:
@@ -1175,11 +1175,11 @@ static s32 e1000_setup_fiber_link_82543(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	DEBUGOUT("Auto-negotiation enabled\n");
+	DBG("Auto-negotiation enabled\n");
 
 	E1000_WRITE_REG(hw, E1000_CTRL, ctrl);
 	E1000_WRITE_FLUSH(hw);
-	msec_delay(1);
+	mdelay(1);
 
 	/*
 	 * For these adapters, the SW definable pin 1 is cleared when the
@@ -1189,7 +1189,7 @@ static s32 e1000_setup_fiber_link_82543(struct e1000_hw *hw)
 	if (!(E1000_READ_REG(hw, E1000_CTRL) & E1000_CTRL_SWDPIN1)) {
 		ret_val = e1000_poll_fiber_serdes_link_generic(hw);
 	} else {
-		DEBUGOUT("No signal detected\n");
+		DBG("No signal detected\n");
 	}
 
 out:
@@ -1272,7 +1272,7 @@ static s32 e1000_check_for_copper_link_82543(struct e1000_hw *hw)
 	else {
 		ret_val = e1000_config_mac_to_phy_82543(hw);
 		if (ret_val) {
-			DEBUGOUT("Error configuring MAC to PHY settings\n");
+			DBG("Error configuring MAC to PHY settings\n");
 			goto out;
 		}
 	}
@@ -1285,7 +1285,7 @@ static s32 e1000_check_for_copper_link_82543(struct e1000_hw *hw)
 	 */
 	ret_val = e1000_config_fc_after_link_up_generic(hw);
 	if (ret_val) {
-		DEBUGOUT("Error configuring flow control\n");
+		DBG("Error configuring flow control\n");
 	}
 
 	/*
@@ -1299,7 +1299,7 @@ static s32 e1000_check_for_copper_link_82543(struct e1000_hw *hw)
 	if (e1000_tbi_compatibility_enabled_82543(hw)) {
 		ret_val = mac->ops.get_link_up_info(hw, &speed, &duplex);
 		if (ret_val) {
-			DEBUGOUT("Error getting link speed and duplex\n");
+			DBG("Error getting link speed and duplex\n");
 			return ret_val;
 		}
 		if (speed != SPEED_1000) {
@@ -1373,7 +1373,7 @@ static s32 e1000_check_for_fiber_link_82543(struct e1000_hw *hw)
 			ret_val = 0;
 			goto out;
 		}
-		DEBUGOUT("NOT RXing /C/, disable AutoNeg and force link.\n");
+		DBG("NOT RXing /C/, disable AutoNeg and force link.\n");
 
 		/* Disable auto-negotiation in the TXCW register */
 		E1000_WRITE_REG(hw, E1000_TXCW, (mac->txcw & ~E1000_TXCW_ANE));
@@ -1386,7 +1386,7 @@ static s32 e1000_check_for_fiber_link_82543(struct e1000_hw *hw)
 		/* Configure Flow Control after forcing link up. */
 		ret_val = e1000_config_fc_after_link_up_generic(hw);
 		if (ret_val) {
-			DEBUGOUT("Error configuring flow control\n");
+			DBG("Error configuring flow control\n");
 			goto out;
 		}
 	} else if ((ctrl & E1000_CTRL_SLU) && (rxcw & E1000_RXCW_C)) {
@@ -1396,7 +1396,7 @@ static s32 e1000_check_for_fiber_link_82543(struct e1000_hw *hw)
 		 * and disable forced link in the Device Control register
 		 * in an attempt to auto-negotiate with our link partner.
 		 */
-		DEBUGOUT("RXing /C/, enable AutoNeg and stop forcing link.\n");
+		DBG("RXing /C/, enable AutoNeg and stop forcing link.\n");
 		E1000_WRITE_REG(hw, E1000_TXCW, mac->txcw);
 		E1000_WRITE_REG(hw, E1000_CTRL, (ctrl & ~E1000_CTRL_SLU));
 

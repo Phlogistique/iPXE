@@ -330,7 +330,7 @@ static int e1000_refill_rx_ring ( struct e1000_adapter *adapter )
 		if ( adapter->rx_iobuf[rx_curr] != NULL )
 			continue;
 
-		DBG2 ( "Refilling rx desc %d\n", rx_curr );
+		DBG ( "Refilling rx desc %d\n", rx_curr );
 
 		iob = alloc_iob ( MAXIMUM_ETHERNET_VLAN_SIZE );
 		adapter->rx_iobuf[rx_curr] = iob;
@@ -452,7 +452,7 @@ static void e1000_process_rx_packets ( struct net_device *netdev )
 			          ( i * sizeof ( *adapter->rx_base ) );
 		rx_status = rx_curr_desc->status;
 
-		DBG2 ( "Before DD Check RX_status: %#08x\n", rx_status );
+		DBG ( "Before DD Check RX_status: %#08x\n", rx_status );
 
 		if ( ! ( rx_status & E1000_RXD_STAT_DD ) )
 			break;

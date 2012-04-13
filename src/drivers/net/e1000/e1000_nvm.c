@@ -110,7 +110,7 @@ static void e1000_raise_eec_clk(struct e1000_hw *hw, u32 *eecd)
 	*eecd = *eecd | E1000_EECD_SK;
 	E1000_WRITE_REG(hw, E1000_EECD, *eecd);
 	E1000_WRITE_FLUSH(hw);
-	usec_delay(hw->nvm.delay_usec);
+	udelay(hw->nvm.delay_usec);
 }
 
 /**
@@ -125,7 +125,7 @@ static void e1000_lower_eec_clk(struct e1000_hw *hw, u32 *eecd)
 	*eecd = *eecd & ~E1000_EECD_SK;
 	E1000_WRITE_REG(hw, E1000_EECD, *eecd);
 	E1000_WRITE_FLUSH(hw);
-	usec_delay(hw->nvm.delay_usec);
+	udelay(hw->nvm.delay_usec);
 }
 
 /**
@@ -162,7 +162,7 @@ static void e1000_shift_out_eec_bits(struct e1000_hw *hw, u16 data, u16 count)
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
 		E1000_WRITE_FLUSH(hw);
 
-		usec_delay(nvm->delay_usec);
+		udelay(nvm->delay_usec);
 
 		e1000_raise_eec_clk(hw, &eecd);
 		e1000_lower_eec_clk(hw, &eecd);
@@ -241,7 +241,7 @@ s32 e1000_poll_eerd_eewr_done(struct e1000_hw *hw, int ee_reg)
 			break;
 		}
 
-		usec_delay(5);
+		udelay(5);
 	}
 
 	return ret_val;
@@ -269,7 +269,7 @@ s32 e1000_acquire_nvm_generic(struct e1000_hw *hw)
 	while (timeout) {
 		if (eecd & E1000_EECD_GNT)
 			break;
-		usec_delay(5);
+		udelay(5);
 		eecd = E1000_READ_REG(hw, E1000_EECD);
 		timeout--;
 	}
@@ -277,7 +277,7 @@ s32 e1000_acquire_nvm_generic(struct e1000_hw *hw)
 	if (!timeout) {
 		eecd &= ~E1000_EECD_REQ;
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
-		DEBUGOUT("Could not acquire NVM grant\n");
+		DBG("Could not acquire NVM grant\n");
 		ret_val = -E1000_ERR_NVM;
 	}
 
@@ -301,7 +301,7 @@ static void e1000_standby_nvm(struct e1000_hw *hw)
 		eecd &= ~(E1000_EECD_CS | E1000_EECD_SK);
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
 		E1000_WRITE_FLUSH(hw);
-		usec_delay(nvm->delay_usec);
+		udelay(nvm->delay_usec);
 
 		e1000_raise_eec_clk(hw, &eecd);
 
@@ -309,7 +309,7 @@ static void e1000_standby_nvm(struct e1000_hw *hw)
 		eecd |= E1000_EECD_CS;
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
 		E1000_WRITE_FLUSH(hw);
-		usec_delay(nvm->delay_usec);
+		udelay(nvm->delay_usec);
 
 		e1000_lower_eec_clk(hw, &eecd);
 	} else
@@ -318,11 +318,11 @@ static void e1000_standby_nvm(struct e1000_hw *hw)
 		eecd |= E1000_EECD_CS;
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
 		E1000_WRITE_FLUSH(hw);
-		usec_delay(nvm->delay_usec);
+		udelay(nvm->delay_usec);
 		eecd &= ~E1000_EECD_CS;
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
 		E1000_WRITE_FLUSH(hw);
-		usec_delay(nvm->delay_usec);
+		udelay(nvm->delay_usec);
 	}
 }
 
@@ -399,7 +399,7 @@ static s32 e1000_ready_nvm_eeprom(struct e1000_hw *hw)
 		/* Clear SK and CS */
 		eecd &= ~(E1000_EECD_CS | E1000_EECD_SK);
 		E1000_WRITE_REG(hw, E1000_EECD, eecd);
-		usec_delay(1);
+		udelay(1);
 		timeout = NVM_MAX_RETRY_SPI;
 
 		/*
@@ -415,13 +415,13 @@ static s32 e1000_ready_nvm_eeprom(struct e1000_hw *hw)
 			if (!(spi_stat_reg & NVM_STATUS_RDY_SPI))
 				break;
 
-			usec_delay(5);
+			udelay(5);
 			e1000_standby_nvm(hw);
 			timeout--;
 		}
 
 		if (!timeout) {
-			DEBUGOUT("SPI NVM Status error\n");
+			DBG("SPI NVM Status error\n");
 			ret_val = -E1000_ERR_NVM;
 			goto out;
 		}
@@ -456,7 +456,7 @@ s32 e1000_read_nvm_spi(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
 	 */
 	if ((offset >= nvm->word_size) || (words > (nvm->word_size - offset)) ||
 	    (words == 0)) {
-		DEBUGOUT("nvm parameter(s) out of bounds\n");
+		DBG("nvm parameter(s) out of bounds\n");
 		ret_val = -E1000_ERR_NVM;
 		goto out;
 	}
@@ -520,7 +520,7 @@ s32 e1000_read_nvm_microwire(struct e1000_hw *hw, u16 offset, u16 words,
 	 */
 	if ((offset >= nvm->word_size) || (words > (nvm->word_size - offset)) ||
 	    (words == 0)) {
-		DEBUGOUT("nvm parameter(s) out of bounds\n");
+		DBG("nvm parameter(s) out of bounds\n");
 		ret_val = -E1000_ERR_NVM;
 		goto out;
 	}
@@ -577,7 +577,7 @@ s32 e1000_read_nvm_eerd(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
 	 */
 	if ((offset >= nvm->word_size) || (words > (nvm->word_size - offset)) ||
 	    (words == 0)) {
-		DEBUGOUT("nvm parameter(s) out of bounds\n");
+		DBG("nvm parameter(s) out of bounds\n");
 		ret_val = -E1000_ERR_NVM;
 		goto out;
 	}
@@ -625,7 +625,7 @@ s32 e1000_write_nvm_spi(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
 	 */
 	if ((offset >= nvm->word_size) || (words > (nvm->word_size - offset)) ||
 	    (words == 0)) {
-		DEBUGOUT("nvm parameter(s) out of bounds\n");
+		DBG("nvm parameter(s) out of bounds\n");
 		ret_val = -E1000_ERR_NVM;
 		goto out;
 	}
@@ -675,7 +675,7 @@ s32 e1000_write_nvm_spi(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
 		}
 	}
 
-	msec_delay(10);
+	mdelay(10);
 release:
 	nvm->ops.release(hw);
 
@@ -712,7 +712,7 @@ s32 e1000_write_nvm_microwire(struct e1000_hw *hw, u16 offset, u16 words,
 	 */
 	if ((offset >= nvm->word_size) || (words > (nvm->word_size - offset)) ||
 	    (words == 0)) {
-		DEBUGOUT("nvm parameter(s) out of bounds\n");
+		DBG("nvm parameter(s) out of bounds\n");
 		ret_val = -E1000_ERR_NVM;
 		goto out;
 	}
@@ -747,11 +747,11 @@ s32 e1000_write_nvm_microwire(struct e1000_hw *hw, u16 offset, u16 words,
 			eecd = E1000_READ_REG(hw, E1000_EECD);
 			if (eecd & E1000_EECD_DO)
 				break;
-			usec_delay(50);
+			udelay(50);
 		}
 
 		if (widx == 200) {
-			DEBUGOUT("NVM Write did not complete\n");
+			DBG("NVM Write did not complete\n");
 			ret_val = -E1000_ERR_NVM;
 			goto release;
 		}
@@ -790,14 +790,14 @@ s32 e1000_read_pba_num_generic(struct e1000_hw *hw, u32 *pba_num)
 
 	ret_val = hw->nvm.ops.read(hw, NVM_PBA_OFFSET_0, 1, &nvm_data);
 	if (ret_val) {
-		DEBUGOUT("NVM Read Error\n");
+		DBG("NVM Read Error\n");
 		goto out;
 	}
 	*pba_num = (u32)(nvm_data << 16);
 
 	ret_val = hw->nvm.ops.read(hw, NVM_PBA_OFFSET_1, 1, &nvm_data);
 	if (ret_val) {
-		DEBUGOUT("NVM Read Error\n");
+		DBG("NVM Read Error\n");
 		goto out;
 	}
 	*pba_num |= nvm_data;
@@ -829,7 +829,7 @@ s32 e1000_read_mac_addr_generic(struct e1000_hw *hw)
 	for (i = 0; i < E1000_RAH_MAC_ADDR_LEN; i++)
 		hw->mac.perm_addr[i+4] = (u8)(rar_high >> (i*8));
 
-	for (i = 0; i < ETH_ADDR_LEN; i++)
+	for (i = 0; i < ETH_ALEN; i++)
 		hw->mac.addr[i] = hw->mac.perm_addr[i];
 
 	return E1000_SUCCESS;
@@ -853,14 +853,14 @@ s32 e1000_validate_nvm_checksum_generic(struct e1000_hw *hw)
 	for (i = 0; i < (NVM_CHECKSUM_REG + 1); i++) {
 		ret_val = hw->nvm.ops.read(hw, i, 1, &nvm_data);
 		if (ret_val) {
-			DEBUGOUT("NVM Read Error\n");
+			DBG("NVM Read Error\n");
 			goto out;
 		}
 		checksum += nvm_data;
 	}
 
 	if (checksum != (u16) NVM_SUM) {
-		DEBUGOUT("NVM Checksum Invalid\n");
+		DBG("NVM Checksum Invalid\n");
 		ret_val = -E1000_ERR_NVM;
 		goto out;
 	}
@@ -888,7 +888,7 @@ s32 e1000_update_nvm_checksum_generic(struct e1000_hw *hw)
 	for (i = 0; i < NVM_CHECKSUM_REG; i++) {
 		ret_val = hw->nvm.ops.read(hw, i, 1, &nvm_data);
 		if (ret_val) {
-			DEBUGOUT("NVM Read Error while updating checksum.\n");
+			DBG("NVM Read Error while updating checksum.\n");
 			goto out;
 		}
 		checksum += nvm_data;
@@ -896,7 +896,7 @@ s32 e1000_update_nvm_checksum_generic(struct e1000_hw *hw)
 	checksum = (u16) NVM_SUM - checksum;
 	ret_val = hw->nvm.ops.write(hw, NVM_CHECKSUM_REG, 1, &checksum);
 	if (ret_val)
-		DEBUGOUT("NVM Write Error while updating checksum.\n");
+		DBG("NVM Write Error while updating checksum.\n");
 
 out:
 	return ret_val;
@@ -915,7 +915,7 @@ static void e1000_reload_nvm_generic(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_reload_nvm_generic");
 
-	usec_delay(10);
+	udelay(10);
 	ctrl_ext = E1000_READ_REG(hw, E1000_CTRL_EXT);
 	ctrl_ext |= E1000_CTRL_EXT_EE_RST;
 	E1000_WRITE_REG(hw, E1000_CTRL_EXT, ctrl_ext);

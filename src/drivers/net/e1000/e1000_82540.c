@@ -276,7 +276,7 @@ static s32 e1000_reset_hw_82540(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_reset_hw_82540");
 
-	DEBUGOUT("Masking off all interrupts\n");
+	DBG("Masking off all interrupts\n");
 	E1000_WRITE_REG(hw, E1000_IMC, 0xFFFFFFFF);
 
 	E1000_WRITE_REG(hw, E1000_RCTL, 0);
@@ -287,11 +287,11 @@ static s32 e1000_reset_hw_82540(struct e1000_hw *hw)
 	 * Delay to allow any outstanding PCI transactions to complete
 	 * before resetting the device.
 	 */
-	msec_delay(10);
+	mdelay(10);
 
 	ctrl = E1000_READ_REG(hw, E1000_CTRL);
 
-	DEBUGOUT("Issuing a global reset to 82540/82545/82546 MAC\n");
+	DBG("Issuing a global reset to 82540/82545/82546 MAC\n");
 	switch (hw->mac.type) {
 	case e1000_82545_rev_3:
 	case e1000_82546_rev_3:
@@ -308,7 +308,7 @@ static s32 e1000_reset_hw_82540(struct e1000_hw *hw)
 	}
 
 	/* Wait for EEPROM reload */
-	msec_delay(5);
+	mdelay(5);
 
 	/* Disable HW ARPs on ASF enabled adapters */
 	manc = E1000_READ_REG(hw, E1000_MANC);
@@ -339,12 +339,12 @@ static s32 e1000_init_hw_82540(struct e1000_hw *hw)
 	/* Initialize identification LED */
 	ret_val = mac->ops.id_led_init(hw);
 	if (ret_val) {
-		DEBUGOUT("Error initializing identification LED\n");
+		DBG("Error initializing identification LED\n");
 		/* This is not fatal and we should not stop init due to this */
 	}
 
 	/* Disabling VLAN filtering */
-	DEBUGOUT("Initializing the IEEE VLAN\n");
+	DBG("Initializing the IEEE VLAN\n");
 	if (mac->type < e1000_82545_rev_3)
 		E1000_WRITE_REG(hw, E1000_VET, 0);
 
@@ -354,7 +354,7 @@ static s32 e1000_init_hw_82540(struct e1000_hw *hw)
 	e1000_init_rx_addrs_generic(hw, mac->rar_entry_count);
 
 	/* Zero out the Multicast HASH table */
-	DEBUGOUT("Zeroing the MTA\n");
+	DBG("Zeroing the MTA\n");
 	for (i = 0; i < mac->mta_reg_count; i++) {
 		E1000_WRITE_REG_ARRAY(hw, E1000_MTA, i, 0);
 		/*
@@ -702,11 +702,11 @@ s32 e1000_read_mac_addr_82540(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_read_mac_addr");
 
-	for (i = 0; i < ETH_ADDR_LEN; i += 2) {
+	for (i = 0; i < ETH_ALEN; i += 2) {
 		offset = i >> 1;
 		ret_val = hw->nvm.ops.read(hw, offset, 1, &nvm_data);
 		if (ret_val) {
-			DEBUGOUT("NVM Read Error\n");
+			DBG("NVM Read Error\n");
 			goto out;
 		}
 		hw->mac.perm_addr[i] = (u8)(nvm_data & 0xFF);
@@ -717,7 +717,7 @@ s32 e1000_read_mac_addr_82540(struct e1000_hw *hw)
 	if (hw->bus.func == E1000_FUNC_1)
 		hw->mac.perm_addr[5] ^= 1;
 
-	for (i = 0; i < ETH_ADDR_LEN; i++)
+	for (i = 0; i < ETH_ALEN; i++)
 		hw->mac.addr[i] = hw->mac.perm_addr[i];
 
 out:

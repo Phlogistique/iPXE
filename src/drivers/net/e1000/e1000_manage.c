@@ -79,7 +79,7 @@ s32 e1000_mng_enable_host_if_generic(struct e1000_hw *hw)
 	/* Check that the host interface is enabled. */
 	hicr = E1000_READ_REG(hw, E1000_HICR);
 	if ((hicr & E1000_HICR_EN) == 0) {
-		DEBUGOUT("E1000_HOST_EN bit disabled.\n");
+		DBG("E1000_HOST_EN bit disabled.\n");
 		ret_val = -E1000_ERR_HOST_INTERFACE_COMMAND;
 		goto out;
 	}
@@ -88,11 +88,11 @@ s32 e1000_mng_enable_host_if_generic(struct e1000_hw *hw)
 		hicr = E1000_READ_REG(hw, E1000_HICR);
 		if (!(hicr & E1000_HICR_C))
 			break;
-		msec_delay_irq(1);
+		mdelay(1);
 	}
 
 	if (i == E1000_MNG_DHCP_COMMAND_TIMEOUT) {
-		DEBUGOUT("Previous command timeout failed .\n");
+		DBG("Previous command timeout failed .\n");
 		ret_val = -E1000_ERR_HOST_INTERFACE_COMMAND;
 		goto out;
 	}

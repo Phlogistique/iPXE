@@ -44,11 +44,11 @@ s32 e1000_init_mac_params(struct e1000_hw *hw)
 	if (hw->mac.ops.init_params) {
 		ret_val = hw->mac.ops.init_params(hw);
 		if (ret_val) {
-			DEBUGOUT("MAC Initialization Error\n");
+			DBG("MAC Initialization Error\n");
 			goto out;
 		}
 	} else {
-		DEBUGOUT("mac.init_mac_params was NULL\n");
+		DBG("mac.init_mac_params was NULL\n");
 		ret_val = -E1000_ERR_CONFIG;
 	}
 
@@ -70,11 +70,11 @@ s32 e1000_init_nvm_params(struct e1000_hw *hw)
 	if (hw->nvm.ops.init_params) {
 		ret_val = hw->nvm.ops.init_params(hw);
 		if (ret_val) {
-			DEBUGOUT("NVM Initialization Error\n");
+			DBG("NVM Initialization Error\n");
 			goto out;
 		}
 	} else {
-		DEBUGOUT("nvm.init_nvm_params was NULL\n");
+		DBG("nvm.init_nvm_params was NULL\n");
 		ret_val = -E1000_ERR_CONFIG;
 	}
 
@@ -96,11 +96,11 @@ s32 e1000_init_phy_params(struct e1000_hw *hw)
 	if (hw->phy.ops.init_params) {
 		ret_val = hw->phy.ops.init_params(hw);
 		if (ret_val) {
-			DEBUGOUT("PHY Initialization Error\n");
+			DBG("PHY Initialization Error\n");
 			goto out;
 		}
 	} else {
-		DEBUGOUT("phy.init_phy_params was NULL\n");
+		DBG("phy.init_phy_params was NULL\n");
 		ret_val =  -E1000_ERR_CONFIG;
 	}
 
@@ -213,12 +213,12 @@ s32 e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device)
 	/* Can't do much good without knowing the MAC type. */
 	ret_val = e1000_set_mac_type(hw);
 	if (ret_val) {
-		DEBUGOUT("ERROR: MAC type could not be set properly.\n");
+		DBG("ERROR: MAC type could not be set properly.\n");
 		goto out;
 	}
 
 	if (!hw->hw_addr) {
-		DEBUGOUT("ERROR: Registers not mapped\n");
+		DBG("ERROR: Registers not mapped\n");
 		ret_val = -E1000_ERR_CONFIG;
 		goto out;
 	}
@@ -258,7 +258,7 @@ s32 e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device)
 		e1000_init_function_pointers_82541(hw);
 		break;
 	default:
-		DEBUGOUT("Hardware not supported\n");
+		DBG("Hardware not supported\n");
 		ret_val = -E1000_ERR_CONFIG;
 		break;
 	}

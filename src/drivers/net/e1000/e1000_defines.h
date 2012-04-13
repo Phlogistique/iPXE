@@ -1190,10 +1190,6 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define PCIE_LINK_WIDTH_SHIFT        4
 #define PCIE_DEVICE_CONTROL2_16ms    0x0005
 
-#ifndef ETH_ADDR_LEN
-#define ETH_ADDR_LEN                 6
-#endif
-
 #define PHY_REVISION_MASK      0xFFFFFFF0
 #define MAX_PHY_REG_ADDRESS    0x1F  /* 5 bit address bus (0-0x1F) */
 #define MAX_PHY_MULTI_PAGE_REG 0xF

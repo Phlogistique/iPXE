@@ -308,7 +308,7 @@ static s32 e1000_reset_hw_82541(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_reset_hw_82541");
 
-	DEBUGOUT("Masking off all interrupts\n");
+	DBG("Masking off all interrupts\n");
 	E1000_WRITE_REG(hw, E1000_IMC, 0xFFFFFFFF);
 
 	E1000_WRITE_REG(hw, E1000_RCTL, 0);
@@ -319,17 +319,17 @@ static s32 e1000_reset_hw_82541(struct e1000_hw *hw)
 	 * Delay to allow any outstanding PCI transactions to complete
 	 * before resetting the device.
 	 */
-	msec_delay(10);
+	mdelay(10);
 
 	ctrl = E1000_READ_REG(hw, E1000_CTRL);
 
 	/* Must reset the Phy before resetting the MAC */
 	if ((hw->mac.type == e1000_82541) || (hw->mac.type == e1000_82547)) {
 		E1000_WRITE_REG(hw, E1000_CTRL, (ctrl | E1000_CTRL_PHY_RST));
-		msec_delay(5);
+		mdelay(5);
 	}
 
-	DEBUGOUT("Issuing a global reset to 82541/82547 MAC\n");
+	DBG("Issuing a global reset to 82541/82547 MAC\n");
 	switch (hw->mac.type) {
 	case e1000_82541:
 	case e1000_82541_rev_2:
@@ -346,7 +346,7 @@ static s32 e1000_reset_hw_82541(struct e1000_hw *hw)
 	}
 
 	/* Wait for NVM reload */
-	msec_delay(20);
+	mdelay(20);
 
 	/* Disable HW ARPs on ASF enabled adapters */
 	manc = E1000_READ_REG(hw, E1000_MANC);
@@ -364,7 +364,7 @@ static s32 e1000_reset_hw_82541(struct e1000_hw *hw)
 	}
 
 	/* Once again, mask the interrupts */
-	DEBUGOUT("Masking off all interrupts\n");
+	DBG("Masking off all interrupts\n");
 	E1000_WRITE_REG(hw, E1000_IMC, 0xFFFFFFFF);
 
 	/* Clear any pending interrupt events. */
@@ -391,7 +391,7 @@ static s32 e1000_init_hw_82541(struct e1000_hw *hw)
 	/* Initialize identification LED */
 	ret_val = mac->ops.id_led_init(hw);
 	if (ret_val) {
-		DEBUGOUT("Error initializing identification LED\n");
+		DBG("Error initializing identification LED\n");
 		/* This is not fatal and we should not stop init due to this */
 	}
 
@@ -403,14 +403,14 @@ static s32 e1000_init_hw_82541(struct e1000_hw *hw)
 		goto out;
 
 	/* Disabling VLAN filtering */
-	DEBUGOUT("Initializing the IEEE VLAN\n");
+	DBG("Initializing the IEEE VLAN\n");
 	mac->ops.clear_vfta(hw);
 
 	/* Setup the receive address. */
 	e1000_init_rx_addrs_generic(hw, mac->rar_entry_count);
 
 	/* Zero out the Multicast HASH table */
-	DEBUGOUT("Zeroing the MTA\n");
+	DBG("Zeroing the MTA\n");
 	for (i = 0; i < mac->mta_reg_count; i++) {
 		E1000_WRITE_REG_ARRAY(hw, E1000_MTA, i, 0);
 		/*
@@ -663,7 +663,7 @@ static s32 e1000_check_for_link_82541(struct e1000_hw *hw)
 	 */
 	ret_val = e1000_config_fc_after_link_up_generic(hw);
 	if (ret_val) {
-		DEBUGOUT("Error configuring flow control\n");
+		DBG("Error configuring flow control\n");
 	}
 
 out:
@@ -702,7 +702,7 @@ static s32 e1000_config_dsp_after_link_change_82541(struct e1000_hw *hw,
 	if (link_up) {
 		ret_val = hw->mac.ops.get_link_up_info(hw, &speed, &duplex);
 		if (ret_val) {
-			DEBUGOUT("Error getting link speed and duplex\n");
+			DBG("Error getting link speed and duplex\n");
 			goto out;
 		}
 
@@ -751,7 +751,7 @@ static s32 e1000_config_dsp_after_link_change_82541(struct e1000_hw *hw,
 			goto out;
 
 		for (i = 0; i < ffe_idle_err_timeout; i++) {
-			usec_delay(1000);
+			udelay(1000);
 			ret_val = phy->ops.read_reg(hw,
 			                            PHY_1000T_STATUS,
 			                            &phy_data);
@@ -791,7 +791,7 @@ static s32 e1000_config_dsp_after_link_change_82541(struct e1000_hw *hw,
 			if (ret_val)
 				goto out;
 
-			msec_delay_irq(20);
+			mdelay(20);
 
 			ret_val = phy->ops.write_reg(hw,
 			                             0x0000,
@@ -821,7 +821,7 @@ static s32 e1000_config_dsp_after_link_change_82541(struct e1000_hw *hw,
 			if (ret_val)
 				goto out;
 
-			msec_delay_irq(20);
+			mdelay(20);
 
 			/* Now enable the transmitter */
 			ret_val = phy->ops.write_reg(hw,
@@ -851,7 +851,7 @@ static s32 e1000_config_dsp_after_link_change_82541(struct e1000_hw *hw,
 		if (ret_val)
 			goto out;
 
-		msec_delay_irq(20);
+		mdelay(20);
 
 		ret_val = phy->ops.write_reg(hw,
 		                             0x0000,
@@ -871,7 +871,7 @@ static s32 e1000_config_dsp_after_link_change_82541(struct e1000_hw *hw,
 		if (ret_val)
 			goto out;
 
-		msec_delay_irq(20);
+		mdelay(20);
 
 		/* Now enable the transmitter */
 		ret_val = phy->ops.write_reg(hw, 0x2F5B, phy_saved_data);
@@ -1145,7 +1145,7 @@ static s32 e1000_phy_init_script_82541(struct e1000_hw *hw)
 	}
 
 	/* Delay after phy reset to enable NVM configuration to load */
-	msec_delay(20);
+	mdelay(20);
 
 	/*
 	 * Save off the current value of register 0x2F5B to be restored at
@@ -1156,11 +1156,11 @@ static s32 e1000_phy_init_script_82541(struct e1000_hw *hw)
 	/* Disabled the PHY transmitter */
 	hw->phy.ops.write_reg(hw, 0x2F5B, 0x0003);
 
-	msec_delay(20);
+	mdelay(20);
 
 	hw->phy.ops.write_reg(hw, 0x0000, 0x0140);
 
-	msec_delay(5);
+	mdelay(5);
 
 	switch (hw->mac.type) {
 	case e1000_82541:
@@ -1193,7 +1193,7 @@ static s32 e1000_phy_init_script_82541(struct e1000_hw *hw)
 
 	hw->phy.ops.write_reg(hw, 0x0000, 0x3300);
 
-	msec_delay(20);
+	mdelay(20);
 
 	/* Now enable the transmitter */
 	hw->phy.ops.write_reg(hw, 0x2F5B, phy_saved_data);
