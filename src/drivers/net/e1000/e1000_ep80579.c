@@ -60,6 +60,8 @@ static s32 e1000_init_phy_params_ep80579(struct e1000_hw *hw)
 
 	DBGF;
 
+	phy->ops.read_reg = e1000_phy_read_reg_ep80579;
+	phy->ops.write_reg = e1000_phy_write_reg_ep80579;
 
 	err = e1000_get_phy_id(hw);
 	if (err < 0)
@@ -75,8 +77,6 @@ static s32 e1000_init_phy_params_ep80579(struct e1000_hw *hw)
 		return -E1000_ERR_PHY;
 	}
 
-	phy->ops.read_reg = e1000_phy_read_reg_ep80579;
-	phy->ops.write_reg = e1000_phy_write_reg_ep80579;
 	phy->ops.get_info = e1000_get_phy_info_m88;
 	phy->ops.reset = e1000_phy_hw_reset_ep80579;
 	phy->ops.get_cfg_done = e1000_get_cfg_done_generic;
