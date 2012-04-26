@@ -17,6 +17,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #include <ipxe/init.h>
 #include <ipxe/io.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <ipxe/serial.h>
 #include "config/serial.h"
 
@@ -42,22 +43,26 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define COMSTOP		1
 #endif
 
-#undef UART_BASE
-#define UART_BASE ( COMCONSOLE )
-
-#undef UART_BAUD
-#define UART_BAUD ( COMSPEED )
-
-#if ((115200%UART_BAUD) != 0)
+#if ((115200%COMSPEED) != 0)
 #error Bad ttys0 baud rate
 #endif
 
-#define COMBRD (115200/UART_BAUD)
+inline u8 uart_lcs ( struct serial_config *config ) {
+	return ( ( config->data - 5 )	<< 0 )
+	     | ( ( config->parity )	<< 3 )
+	     | ( ( config->stop - 1 )	<< 2 );
+}
 
-/* Line Control Settings */
-#define UART_LCS ( ( ( (COMDATA) - 5 )	<< 0 ) | \
-		   ( ( (COMPARITY) )	<< 3 ) | \
-		   ( ( (COMSTOP) - 1 )	<< 2 ) )
+struct serial_config default_serial = {
+	.console = COMCONSOLE,
+	.speed = COMSPEED,
+	.data = COMDATA,
+	.parity = COMPARITY,
+	.stop = COMSTOP,
+#ifdef COMPRESERVE
+	.preserve = 1,
+#endif
+};
 
 /* Data */
 #define UART_RBR 0x00
@@ -93,19 +98,24 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define uart_writeb(val,addr) outb((val),(addr))
 #endif
 
+void serial_putc ( int ch ) { serial_putc_(&default_serial, ch); }
+int serial_getc ( void ) { return serial_getc_(&default_serial); }
+int serial_ischar ( void ) { return serial_ischar_(&default_serial); }
+static void serial_init ( void ) { return serial_init_(&default_serial); }
+
 /*
  * void serial_putc(int ch);
- *	Write character `ch' to port UART_BASE.
+ *	Write character `ch' to port port->console.
  */
-void serial_putc ( int ch ) {
+void serial_putc_ ( struct serial_config *port, int ch ) {
 	int i;
 	int status;
 	i = 1000; /* timeout */
 	while(--i > 0) {
-		status = uart_readb(UART_BASE + UART_LSR);
-		if (status & UART_LSR_THRE) { 
+		status = uart_readb(port->console + UART_LSR);
+		if (status & UART_LSR_THRE) {
 			/* TX buffer emtpy */
-			uart_writeb(ch, UART_BASE + UART_TBR);
+			uart_writeb(ch, port->console + UART_TBR);
 			break;
 		}
 		mdelay(2);
@@ -114,17 +124,17 @@ void serial_putc ( int ch ) {
 
 /*
  * int serial_getc(void);
- *	Read a character from port UART_BASE.
+ *	Read a character from port port->console.
  */
-int serial_getc ( void ) {
+int serial_getc_ ( struct serial_config *port ) {
 	int status;
 	int ch;
 	do {
-		status = uart_readb(UART_BASE + UART_LSR);
+		status = uart_readb(port->console + UART_LSR);
 	} while((status & 1) == 0);
-	ch = uart_readb(UART_BASE + UART_RBR);	/* fetch (first) character */
-	ch &= 0x7f;				/* remove any parity bits we get */
-	if (ch == 0x7f) {			/* Make DEL... look like BS */
+	ch = uart_readb(port->console + UART_RBR); /* fetch (first) character */
+	ch &= 0x7f;				   /* remove any parity bits we get */
+	if (ch == 0x7f) {			   /* Make DEL... look like BS */
 		ch = 0x08;
 	}
 	return ch;
@@ -132,80 +142,85 @@ int serial_getc ( void ) {
 
 /*
  * int serial_ischar(void);
- *       If there is a character in the input buffer of port UART_BASE,
+ *       If there is a character in the input buffer of port port->console,
  *       return nonzero; otherwise return 0.
  */
-int serial_ischar ( void ) {
+int serial_ischar_ ( struct serial_config *port ) {
 	int status;
-	status = uart_readb(UART_BASE + UART_LSR);	/* line status reg; */
-	return status & 1;		/* rx char available */
+	status = uart_readb(port->console + UART_LSR); /* line status reg; */
+	return status & 1;			       /* rx char available */
 }
 
 /*
  * int serial_init(void);
- *	Initialize port UART_BASE to speed COMSPEED, line settings 8N1.
+ *	Initialize port port->console to speed port->speed, line settings 8N1.
  */
-static void serial_init ( void ) {
+void serial_init_ ( struct serial_config *port ) {
 	int status;
 	int divisor, lcs;
 
-	DBG ( "Serial port %#x initialising\n", UART_BASE );
+	DBG ( "Serial port %#x initialising\n", port->console );
 
-	divisor = COMBRD;
-	lcs = UART_LCS;
+	if ((115200 % port->speed) != 0) {
+		printf("Bad baud rate %d\n", port->speed);
+		return;
+	}
 
+	divisor = 115200 / port->speed;
+	lcs = uart_lcs(port);
 
-#ifdef COMPRESERVE
-	lcs = uart_readb(UART_BASE + UART_LCR) & 0x7f;
-	uart_writeb(0x80 | lcs, UART_BASE + UART_LCR);
-	divisor = (uart_readb(UART_BASE + UART_DLM) << 8) | uart_readb(UART_BASE + UART_DLL);
-	uart_writeb(lcs, UART_BASE + UART_LCR);
-#endif
+	if (port->preserve) {
+		lcs = uart_readb(port->console + UART_LCR) & 0x7f;
+		uart_writeb(0x80 | lcs, port->console + UART_LCR);
+		divisor = (uart_readb(port->console + UART_DLM) << 8)
+			| uart_readb(port->console + UART_DLL);
+		uart_writeb(lcs, port->console + UART_LCR);
+	}
 
-	/* Set Baud Rate Divisor to COMSPEED, and test to see if the
+	/* Set Baud Rate Divisor to port->speed, and test to see if the
 	 * serial port appears to be present.
 	 */
-	uart_writeb(0x80 | lcs, UART_BASE + UART_LCR);
-	uart_writeb(0xaa, UART_BASE + UART_DLL);
-	if (uart_readb(UART_BASE + UART_DLL) != 0xaa) {
-		DBG ( "Serial port %#x UART_DLL failed\n", UART_BASE );
+	uart_writeb(0x80 | lcs, port->console + UART_LCR);
+	uart_writeb(0xaa, port->console + UART_DLL);
+	if (uart_readb(port->console + UART_DLL) != 0xaa) {
+		DBG ( "Serial port %#x UART_DLL failed\n", port->console );
 		goto out;
 	}
-	uart_writeb(0x55, UART_BASE + UART_DLL);
-	if (uart_readb(UART_BASE + UART_DLL) != 0x55) {
-		DBG ( "Serial port %#x UART_DLL failed\n", UART_BASE );
+	uart_writeb(0x55, port->console + UART_DLL);
+	if (uart_readb(port->console + UART_DLL) != 0x55) {
+		DBG ( "Serial port %#x UART_DLL failed\n", port->console );
 		goto out;
 	}
-	uart_writeb(divisor & 0xff, UART_BASE + UART_DLL);
-	if (uart_readb(UART_BASE + UART_DLL) != (divisor & 0xff)) {
-		DBG ( "Serial port %#x UART_DLL failed\n", UART_BASE );
+	uart_writeb(divisor & 0xff, port->console + UART_DLL);
+	if (uart_readb(port->console + UART_DLL) != (divisor & 0xff)) {
+		DBG ( "Serial port %#x UART_DLL failed\n", port->console );
 		goto out;
 	}
-	uart_writeb(0xaa, UART_BASE + UART_DLM);
-	if (uart_readb(UART_BASE + UART_DLM) != 0xaa) {
-		DBG ( "Serial port %#x UART_DLM failed\n", UART_BASE );
+	uart_writeb(0xaa, port->console + UART_DLM);
+	if (uart_readb(port->console + UART_DLM) != 0xaa) {
+		DBG ( "Serial port %#x UART_DLM failed\n", port->console );
 		goto out;
 	}
-	uart_writeb(0x55, UART_BASE + UART_DLM);
-	if (uart_readb(UART_BASE + UART_DLM) != 0x55) {
-		DBG ( "Serial port %#x UART_DLM failed\n", UART_BASE );
+	uart_writeb(0x55, port->console + UART_DLM);
+	if (uart_readb(port->console + UART_DLM) != 0x55) {
+		DBG ( "Serial port %#x UART_DLM failed\n", port->console );
 		goto out;
 	}
-	uart_writeb((divisor >> 8) & 0xff, UART_BASE + UART_DLM);
-	if (uart_readb(UART_BASE + UART_DLM) != ((divisor >> 8) & 0xff)) {
-		DBG ( "Serial port %#x UART_DLM failed\n", UART_BASE );
+	uart_writeb((divisor >> 8) & 0xff, port->console + UART_DLM);
+	if (uart_readb(port->console + UART_DLM) != ((divisor >> 8) & 0xff)) {
+		DBG ( "Serial port %#x UART_DLM failed\n", port->console );
 		goto out;
 	}
-	uart_writeb(lcs, UART_BASE + UART_LCR);
-	
+	uart_writeb(lcs, port->console + UART_LCR);
+
 	/* disable interrupts */
-	uart_writeb(0x0, UART_BASE + UART_IER);
+	uart_writeb(0x0, port->console + UART_IER);
 
 	/* disable fifo's */
-	uart_writeb(0x00, UART_BASE + UART_FCR);
+	uart_writeb(0x00, port->console + UART_FCR);
 
 	/* Set clear to send, so flow control works... */
-	uart_writeb((1<<1), UART_BASE + UART_MCR);
+	uart_writeb((1<<1), port->console + UART_MCR);
 
 
 	/* Flush the input buffer. */
@@ -213,9 +228,9 @@ static void serial_init ( void ) {
 		/* rx buffer reg
 		 * throw away (unconditionally the first time)
 		 */
-	        (void) uart_readb(UART_BASE + UART_RBR);
+	        (void) uart_readb(port->console + UART_RBR);
 		/* line status reg */
-		status = uart_readb(UART_BASE + UART_LSR);
+		status = uart_readb(port->console + UART_LSR);
 	} while(status & UART_LSR_DR);
  out:
 	return;
@@ -233,7 +248,7 @@ static void serial_fini ( int flags __unused ) {
 	 */
 	i = 10000; /* timeout */
 	do {
-		status = uart_readb(UART_BASE + UART_LSR);
+		status = uart_readb(default_serial.console + UART_LSR);
 	} while((--i > 0) && !(status & UART_LSR_TEMPT));
 	/* Don't mark it as disabled; it's still usable */
 }
