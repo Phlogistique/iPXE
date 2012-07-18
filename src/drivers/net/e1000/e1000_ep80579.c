@@ -28,6 +28,8 @@
 
 FILE_LICENCE ( GPL2_OR_LATER );
 
+#include <ipxe/linux_compat.h>
+
 #include "e1000_api.h"
 #include "gcu/gcu_if.h"
 #include "e1000_defines.h"
@@ -514,18 +516,28 @@ static void e1000_clear_hw_cntrs_ep80579(struct e1000_hw *hw)
 	E1000_DUMP_CNTR(hw, E1000_TSCTFC);
 }
 
+#define XIOH_MAC_OFFSET 0xfff00000
+
 s32 e1000_xioh_read_mac_addr(struct e1000_hw *hw)
 {
-	int i;
+	static const u8 xioh_mac_magic[] = {'X','I','O','H', 0x00, 0x00};
+	unsigned i;
+	u8 *mac;
 
 	DBGF;
 
-	hw->mac.perm_addr[0] = 0x08;
-	hw->mac.perm_addr[1] = 0xd2;
-	hw->mac.perm_addr[2] = 0x9a;
-	hw->mac.perm_addr[3] = random() % 0x100;
-	hw->mac.perm_addr[4] = random() % 0x100;
-	hw->mac.perm_addr[5] = hw->dev_spec.ep80579.device_number + 1;
+	mac = ioremap(XIOH_MAC_OFFSET, 24);
+
+	for (i = 0; i < ARRAY_SIZE(xioh_mac_magic); i++)
+		if (xioh_mac_magic[i] != mac[i])
+			return -E1000_ERR_NVM;
+
+	for (i = 0; i < ETH_ALEN; i++)
+		hw->mac.perm_addr[i] =
+		    mac[ARRAY_SIZE(xioh_mac_magic) +
+			ETH_ALEN * hw->dev_spec.ep80579.device_number + i];
+
+	iounmap(mac);
 
 	for (i = 0; i < ETH_ALEN; i++)
 		hw->mac.addr[i] = hw->mac.perm_addr[i];
